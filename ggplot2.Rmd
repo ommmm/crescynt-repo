@@ -6,7 +6,20 @@ output: html_document
 ---
 
 ## Learning ggplot2
+```{r, echo = FALSE}
+library(tidyverse)
+```
+#can specify which package function is being when called when conficts
+stats::filter()
+
 ```{r}
+mpg
+```
+```{r}
+ggplot(data=mpg, mapping = aes(x = displ, y = hwy)) + geom_point()
+
+#my_plot <- ggplot(data=mpg) + geom_point(mapping = aes(x = displ, y = hwy))
 
 ```
 
+#operators like + must be last on the line
