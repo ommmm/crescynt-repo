@@ -4,8 +4,15 @@ author: "OM"
 date: "March 13, 2018"
 output: html_document
 ---
+
+```{r}
+install.packages("tidyverse")
+```
+
 ```{r}
 library(tidyverse)
+
+##Learning tidyr and dplyr with gapminder data
 
 ```{r}
 gapminder <- read_csv("https://raw.githubusercontent.com/jules32/2017-11-30-MBARI/gh-pages/data/gapminder.csv")
@@ -33,6 +40,62 @@ unique(gapminder$continent)
 ```
 
 ```{r}
+summary(gapminder)
+```
+
+```{r}
+install.packages("skimr")
+```
+```{r}
+library(skimr)
+```
+```{r}
+skim(gapminder)
+```
+
+```{r}
+#filter()
+#same since we have dplyr loaded as below - and can also specify explicitly -
+dplyr::filter(gapminder, country == "Switzerland")
+# stats::filter() is masked by dplyr's filter function but could be called
+```
+```{r}
+?filter
+```
+```{r}
+filter(gapminder, lifeExp<30)
+```
+
+
+```{r}
+filter(gapminder, country == "Afghanistan", year == max(year))
+filter(gapminder, country == "Rwanda", year == max(year))
+```
+```{r}
+dplyr::select(gapminder, country, year, pop)
+```
+
+```{r}
+gapminder_no_cont <- dplyr::select(gapminder, -continent)
+```
+```{r}
+dplyr::filter(gapminder_no_cont, year == 2007)
+```
+
+Instead of creating a pile of intermediate variables, can pipe commands together 
+
+```{r}
+select(gapminder, -continent) %>% filter(year == 2007)
+```
+This injects the output of one operation into the next operation - allows one to make the code very readable and stepwise. This is a strength of dplyr since this function is not in base R. Actuall lives in the package migrateR which is included in dplyr.
+
+```{r}
+#mutate(gapminder) or alternatively
+options(scipen=10000)
+gapminder %>%
+  mutate(gdp = gdpPercap*pop) %>%
+  arrange(desc(gdp))
+
 
 ```
 
