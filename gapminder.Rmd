@@ -53,6 +53,8 @@ library(skimr)
 skim(gapminder)
 ```
 
+##Filtering
+
 ```{r}
 #filter()
 #same since we have dplyr loaded as below - and can also specify explicitly -
@@ -81,7 +83,7 @@ gapminder_no_cont <- dplyr::select(gapminder, -continent)
 ```{r}
 dplyr::filter(gapminder_no_cont, year == 2007)
 ```
-
+##Creating pipelines with %>%
 Instead of creating a pile of intermediate variables, can pipe commands together 
 
 ```{r}
@@ -90,7 +92,7 @@ select(gapminder, -continent) %>% filter(year == 2007)
 This injects the output of one operation into the next operation - allows one to make the code very readable and stepwise. This is a strength of dplyr since this function is not in base R. Actuall lives in the package migrateR which is included in dplyr.
 
 ```{r}
-#mutate(gapminder) or alternatively
+#mutate(gapminder) or alternatively (and non-sci notation display)
 options(scipen=10000)
 gapminder %>%
   mutate(gdp = gdpPercap*pop) %>%
@@ -98,4 +100,114 @@ gapminder %>%
 
 
 ```
+##Grouping
+
+```{r}
+options(scipen=10000)
+gapminder %>%
+  group_by(country) %>%
+  mutate(gdp = gdpPercap*pop, max_gdp = max(gdp)) %>%
+  ungroup()
+#good practice to ungroup after a manipulation
+```
+```{r}
+options(scipen=10000)
+gapminder %>%
+  group_by(country) %>%
+  mutate(gdp = pop*gdpPercap) %>%
+  summarize(max_gdp = max(gdp)) %>%
+  arrange(desc(max_gdp))
+```
+##Combining Datasets
+Need a column of information in common, and need unique IDs for rows in both datasets
+Left join: left table has priority, join matching rows left, right, byfield
+Right join: right table has priority, join matching rows, left, right, byfield
+Inner join: retain only rows in both sets, join rows, left, right, byfield
+Full join: retains all values, all rows, left, right, byfield
+
+In this example: have CO2 data for selected countries for 2007.
+
+```{r}
+co2 <- read_csv("https://raw.githubusercontent.com/OHI-Science/data-science-training/master/data/co2.csv")
+co2
+```
+Good idea to keep all variables and names lower case if possible.
+Combine with gapminder data.
+
+```{r}
+gap_2007 <- gapminder %>%
+  filter(year == 2007)
+#check to see if number of countries match
+length(unique(gapminder$country))
+```
+Yes - matches number of countries n 2007. 
+Can often look at fails to see discrepancies; stringr program helps remap names; use unique IDs when available - better than country names in this example - and use authoritative sources where possible (e.g., UN for country names)
+
+```{r}
+left_join(gap_2007, co2, by = "country")
+```
+```{r}
+right_join(gap_2007, co2, by = "country")
+```
+##setdiff
+Can also explicitly test for differences before joining to test for misspellings, potential sources of inadvertent errors.
+
+```{r}
+setdiff(co2$country, gap_2007$country)
+```
+
+
+
+
+
+
+
+
+##Tidyr
+```{r}
+AirPassengers
+```
+
+In tidyr can gather, spread, separate, unite.
+In the AirPassengers dataset would separate into 3 columns: year, month, number
+
+###Tidying gapminder data from wide format
+
+```{r}
+gap_wide <- readr::read_csv("https://raw.githubusercontent.com/OHI-Science/data-science-training/master/data/gapminder_wide.csv")
+gap_wide
+
+```
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+gap_long <- gap_wide %>%
+  gather(key   = obstype_year,
+         value = obs_values)
+```
+
+```{r}
+gap_long <- gap_wide %>%
+  gather(observation, observ_value, -continent, -country)
+
+```
+
+```{r}
+gap_better <- gap_wide %>%
+  gather(observation, observ_value, -continent, -country) %>%
+  separate(observation, into = c("obs_type", "year"), sep = "_", convert = TRUE)
+
+gap_better
+
+```
+
+```{r}
+unique(gap_better$obs_type)
+
+```
+
+###Note: errors earlier were caused by restarting R - had to reload libraries (dplyr and tidyr) - clue was not recognizing pipeline %>%
 
