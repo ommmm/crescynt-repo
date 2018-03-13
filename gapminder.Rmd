@@ -209,5 +209,8 @@ unique(gap_better$obs_type)
 
 ```
 
-###Note: errors earlier were caused by restarting R - had to reload libraries (dplyr and tidyr) - clue was not recognizing pipeline %>%
+Note: errors earlier were caused by restarting R - had to reload libraries (dplyr and tidyr) - clue was not recognizing pipeline %>%
 
+###tidyr functions: gather, spread, separate, unite
+
+To make a ollaborative branch rename the master branch gh-ages
