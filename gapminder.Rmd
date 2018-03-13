@@ -1,0 +1,38 @@
+---
+title: "gapminder"
+author: "OM"
+date: "March 13, 2018"
+output: html_document
+---
+```{r}
+library(tidyverse)
+
+```{r}
+gapminder <- read_csv("https://raw.githubusercontent.com/jules32/2017-11-30-MBARI/gh-pages/data/gapminder.csv")
+```
+
+
+```{r}
+dim(gapminder)
+ncol(gapminder)
+nrow(gapminder)
+```
+
+```{r}
+str(gapminder)
+```
+
+
+```{r}
+unique(gapminder$country)
+```
+
+```{r}
+unique(gapminder[,"continent"])
+unique(gapminder$continent)
+```
+
+```{r}
+
+```
+

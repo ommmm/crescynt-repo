@@ -87,3 +87,54 @@ ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
   geom_point() +
   theme_fivethirtyeight()
 ```
+```{r}
+ggplot(mpg, aes(x=drv, y=hwy)) +
+  geom_jitter()
+```
+```{r}
+ggplot(mpg, aes(x=drv, y=hwy)) +
+  geom_boxplot()
+```
+```{r}
+ggplot(mpg, aes(x=drv, y=hwy)) +
+  geom_violin()
+```
+```{r}
+ggplot(mpg, aes(x=displ, y=hwy)) +
+  geom_smooth()
+```
+
+```{r}
+ggplot(mpg, aes(x=displ, y=hwy)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title = "Relationship between engine size and highway mileage",
+       x = "Engine size (liters displaced)",
+       y = "Highway mileage (miles per gallon)")
+```
+```{r}
+mytheme <- theme_bw() +
+  theme(text = element_text(size=16))
+```
+
+
+```{r}
+ggplot(mpg, aes(x=displ, y=hwy)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title = "Relationship between engine size and highway mileage",
+       x = "Engine size (liters displaced)",
+       y = "Highway mileage (miles per gallon)")
+mytheme
+```
+
+```{r}
+ggplot(mpg, aes(x=fl, fill=class))+
+  geom_bar(position="fill")
+```
+```{r}
+myplot <- ggplot(mpg, aes(x=fl, fill=class))+
+  geom_bar(position="dodge")
+
+ggsave("example_plot.png", plot = myplot, width = 15, height = 15, units = "cm", device = "png")
+```
