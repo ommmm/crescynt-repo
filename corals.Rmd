@@ -1,0 +1,251 @@
+---
+title: "corals"
+author: "OM"
+date: "March 13, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+NCEI ERDDAP server for deep corals: https://ecowatch.ncddc.noaa.gov/
+
+##Tidy Coral
+```{r}
+## libraries
+
+install.packages("janitor")
+library(tidyverse)
+library(janitor) # install.packages('janitor')
+library(skimr) # install.packages('skimr')
+library(stringr) # added when we needed it for benthic data
+install.packages("stringi",type="win.binary")
+## data filepaths/urls ----
+
+## benthic data
+benthic_url <- 'https://www.nodc.noaa.gov/archive/arc0054/0104255/1.1/data/0-data/cd08/100308OaAla03m.CSV'
+
+## buoy data
+buoy_url <- 'http://www.ndbc.noaa.gov/view_text_file.php?filename=mokh1h2010.txt.gz&dir=data/historical/stdmet/'
+```
+```{r}
+benthic_raw <- read_csv(benthic_url)
+head(benthic_raw)
+names(benthic_raw)
+```
+
+```{r}
+benthic <- benthic_raw %>% janitor::clean_names()
+
+names(benthic)
+```
+
+```{r}
+benthic <- benthic %>%
+  select(id_name, point, x, y, id_date)
+head(benthic)
+```
+```{r}
+#install.packages("stringr")
+#install.packages("stringi")
+#library(stringr)
+#library(stringi)
+
+#library(stringr)
+library(tidyr)
+?gsub
+benthic <- benthic %>%
+  mutate(date = stringr::str_remove_all(id_date, "#"))
+head(benthic)
+```
+```{r}
+summary(benthic)
+```
+
+```{r}
+skimr::skim(benthic)
+```
+```{r}
+unique(benthic$id_name)
+```
+
+```{r}
+ggplot(benthic, aes(date, fill = id_name)) +
+         geom_bar()
+```
+
+```{r}
+buoy_raw <- read_table(buoy_url)
+head(buoy)
+```
+
+
+```{r}
+## read_table2
+buoy_raw <- read_table2(buoy_url)
+head(buoy_raw)
+
+```
+```{r}
+buoy_test <- read_delim(buoy_url, delim = " ", trim_ws = TRUE, skip=1)
+```
+
+
+```{r}
+buoy <- readr::read_csv(buoy_url)
+head(buoy)
+```
+
+```{r}
+buoy_test <- read_lines(buoy_url)
+y <- buoy_test %>%
+  as_data_frame() %>%
+  mutate(value = str_replace_all(value, ' +', ',')) 
+write_delim(y, 'data/buoy_local_copy.csv')
+
+z <- read_csv('data/buoy_local_copy.csv', skip=1)
+head(z) ## PRAISE BE
+```
+```{r}
+names(buoy) <- str_c(names(buoy),                  ## current header
+                  buoy %>% filter(`#YY` == "#yr"), ## row1 -- don't say buoy[1,] 
+                  sep = "_")                       ## separate by `_`
+
+# inspect
+names(buoy) 
+# Looks a lot better
+
+#Now the second step:
+
+# 2. clean up a bit more to get rid of the `#`s and the `/`s. 
+names(buoy) <- str_replace_all(names(buoy), "#", "")  # replace `#` with nothing 
+names(buoy) <- str_replace_all(names(buoy), "/", "_") # replace `/` with `_`
+
+## inspect to make sure it worked
+
+```
+```{r}
+# 3. remove redundant row with units
+buoy <- buoy %>%
+  filter(YY_yr != "#yr")
+```
+```{r}
+buoy <- buoy %>%
+  filter(YY_yr != "#yr")
+
+head(buoy)
+```
+```{r}
+library(ggplot2)
+ggplot(buoy, aes(WTMP_degC)) +
+  geom_bar()
+```
+```{r}
+# I googled how to rotate the tick label axis so that we can read the labels:
+ggplot(buoy, aes(WTMP_degC)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90))
+```
+```{r}
+head(benthic)
+head(buoy)
+
+#then
+
+buoy <- buoy %>%
+  unite(date, c(YY_yr, MM_mo, DD_dy), sep = "-")
+
+head(buoy)
+```
+#Must determine how to format dates into 
+```{r}
+install.packages("tidyverse")
+library(tidyverse)
+```
+Try gsub instead of stringr/stringi
+```{r}
+head(benthic)
+head(buoy)
+#
+buoy <- buoy %>%
+  unite(date, c(YY_yr, MM_mo, DD_dy), sep = "-")
+
+head(buoy)
+#
+bb_join <- benthic %>%
+  left_join(buoy, by = "date")
+#
+head(bb_join) # kind of hard to see what's going on.
+#
+bb_join %>%
+  select(id_name, x, y, date, hh_hr, mm_mn, WTMP_degC) %>%
+  head()
+#
+
+```
+If I were to approach this, I would first get rid of columns of non-interest, then aggregate date-times into YYYY-MM-DDThhmm OR keep separate date and 24-hr time and then average by data. Summarize by day to save average. Mutate to retain only one avg value per day.
+
+##Install tidyverse including stringr from github:
+```{r}
+install.packages("devtools")
+
+```
+
+```{r}
+devtools::install_github("hadley/tidyverse")
+```
+```{r}
+library(tidyverse)
+```
+
+Uninstall tidyverse, reinstall dplyr, tidyr, readr then use gsub rather than stringr
+example:
+```{r}
+
+gsub(pattern, replacement, x, ignore.case = FALSE, perl = FALSE,
+     fixed = FALSE, useBytes = FALSE)
+```
+
+```{r}
+installed.packages()
+```
+
+```{r}
+buoy_daily <- buoy %>%
+  mutate(temp_clean = as.numeric(gsub("999.0", NA, WTMP_degC))) %>% 
+  group_by(date) %>% 
+  summarize(mean_temp = mean(temp_clean, na.rm=T))
+```
+```{r}
+head(buoy_daily)
+```
+#Reinstalling packages
+```{r}
+install.packages("dplyr")
+install.packages("tidyr")
+install.packages("readr")
+
+```
+
+
